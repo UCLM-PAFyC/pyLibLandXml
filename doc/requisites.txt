@@ -1,0 +1,9 @@
+Cuando se instalan librerias de python desde la consola de OSGeo4w se crean
+en la carpeta correspondiente y pueden ser usadas por otras instalaciones de QGIS de la misma version:
+C:\Users\dhernand\AppData\Roaming\Python\Python312\site-packages
+Esto implica que si la hemos instalado antes para otra versión de QGIS no será necesario volver a instalarla
+siempre que la versión de python coincida.
+
+- xmltodict
+desde la consola de osgeo4w
+pip install xmltodict
