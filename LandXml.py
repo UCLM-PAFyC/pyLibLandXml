@@ -28,11 +28,11 @@ class LandXml:
         self.crs_id = None
         self.crs_epsg_code = None
         self.crs_vertical_epsg_code = None
-        self.alignments = []
+        self.alignment_by_cumulative_distance_mm = []
 
     def clear(self):
         self.file_path = None
-        self.alignments.clear()
+        self.alignment_by_cumulative_distance_mm.clear()
 
     def set_from_file(self,
                       file_path):
@@ -162,6 +162,7 @@ class LandXml:
         else:
             aligment_list = element_aligment_content
         is_multi_band = False
+        alignment_by_cumulative_distance = {}
         for i in range(len(aligment_list)):
             aligment_element = aligment_list[i]
             aligment = Aligment(self)
@@ -171,8 +172,9 @@ class LandXml:
                              format(dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_TAG,
                                     str(i+1), dlx.XML_DOCUMENT_ALIGMENTS_TAG, file_path))
                 return str_error
-            self.alignments.append(aligment)
-            yo = 1
+            cumulative_distance_mm_int = int(aligment.start_cumulative_distance * 1000.)
+            alignment_by_cumulative_distance[cumulative_distance_mm_int] = aligment
+        self.alignment_by_cumulative_distance_mm = dict(sorted(alignment_by_cumulative_distance.items()))
 
         yo = 1
         return str_error

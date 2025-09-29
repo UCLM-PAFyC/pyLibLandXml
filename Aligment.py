@@ -18,8 +18,9 @@ import defs_landxml as dlx
 from Curve import Curve
 from Line import Line
 from Spiral import Spiral
-from ProfAlign import ProfAlign
+from ProfileVerticalAligment import ProfileVerticalAligment
 
+# http://www.landxml.org/schema/landxml-1.2/documentation/landxml-1.2doc_alignment.html
 class Aligment:
     def __init__(self, land_xml):
         self.land_xml = land_xml
@@ -28,7 +29,9 @@ class Aligment:
         self.length = None
         self.description = None
         self.start_cumulative_distance = None
-        self.coord_geoms_shorted_by_distance = None
+        self.horizontal_aligment_by_cumulative_distance_mm = None
+        self.profile_aligment_by_cumulative_distance_mm = None
+        self.cross_section_by_cumulative_distance_mm = None
 
     def set_from_landxml_element(self,
                                  element,
@@ -131,9 +134,9 @@ class Aligment:
                                dlx.XML_ELEMENT_ALIGMENTS_ATTRIBUTE_NAME_TAG,
                                str(position + 1), dlx.XML_DOCUMENT_ALIGMENTS_TAG, file_path))
                     return str_error
-                sta_start_mm_int = int(coord_geom.sta_start * 1000.)
+                sta_start_mm_int = int(coord_geom.start_cumulative_distance * 1000.)
                 coord_geom_by_distance[sta_start_mm_int] = coord_geom
-        self.coord_geoms_shorted_by_distance = dict(sorted(coord_geom_by_distance.items()))
+        self.horizontal_aligment_by_cumulative_distance_mm = dict(sorted(coord_geom_by_distance.items()))
         if not dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_PROFILE_TAG in element:
             str_error = ('Not exists element: {} in element: {} in position in element: {} in LandXml file:\n{}'.
                          format(dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_PROFILE_TAG,
@@ -146,6 +149,7 @@ class Aligment:
             profile_list = element_profile
         else:
             profile_list.append(element_profile)
+        profile_vertical_aligment_by_cumulative_distance = {}
         for i in range(len(profile_list)):
             element_profile_content = profile_list[i]
             if not isinstance(element_profile_content, dict):
@@ -162,8 +166,8 @@ class Aligment:
                                 str(position + 1), dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_PROFILE_TAG, file_path))
                 return str_error
             element_profile_prof_aling_content = element_profile_content[dlx.XML_ELEMENT_PROFILE_PROF_ALIGN_TAG]
-            prof_align = ProfAlign(self)
-            str_error = prof_align.set_from_landxml_element(element_profile_prof_aling_content)
+            profile_vertical_aligment = ProfileVerticalAligment(self)
+            str_error = profile_vertical_aligment.set_from_landxml_element(element_profile_prof_aling_content)
             if str_error:
                 str_error = (
                     'Setting element: {} in position: {} in component position: {} in element: {}'
@@ -173,6 +177,38 @@ class Aligment:
                            dlx.XML_ELEMENT_ALIGMENTS_ATTRIBUTE_NAME_TAG,
                            str(position + 1), dlx.XML_DOCUMENT_ALIGMENTS_TAG, file_path))
                 return str_error
-
+            cumulative_distance_mm_int = int(profile_vertical_aligment.start_cumulative_distance * 1000.)
+            profile_vertical_aligment_by_cumulative_distance[cumulative_distance_mm_int] = profile_vertical_aligment
+        self.profile_aligment_by_cumulative_distance_mm = dict(sorted(profile_vertical_aligment_by_cumulative_distance.items()))
+        if not dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_CROSS_SECTS_GEOM_TAG in element:
+            str_error = ('Not exists element: {} in element: {} in position in element: {} in LandXml file:\n{}'.
+                         format(dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_CROSS_SECTS_GEOM_TAG,
+                                dlx.XML_ELEMENT_ALIGMENTS_ATTRIBUTE_NAME_TAG,
+                                str(position + 1), dlx.XML_DOCUMENT_ALIGMENTS_TAG, file_path))
+            return str_error
+        element_cross_sections_content = element[dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_CROSS_SECTS_GEOM_TAG]
+        if not isinstance(element_cross_sections_content, dict):
+            str_error = ('Element: {} in element: {} in position in element: {} in LandXml file:\n{}\nmust be a dict'.
+                         format(dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_CROSS_SECTS_GEOM_TAG,
+                                dlx.XML_ELEMENT_ALIGMENTS_ATTRIBUTE_NAME_TAG,
+                                str(position + 1), dlx.XML_DOCUMENT_ALIGMENTS_TAG, file_path))
+            return str_error
+        if not dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_CROSS_SECT_GEOM_TAG in element_cross_sections_content:
+            str_error = ('Not exists element: {} in element: {}  in element: {}\n in position in element: {} in LandXml file:\n{}'.
+                         format(dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_CROSS_SECT_GEOM_TAG,
+                                dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_CROSS_SECTS_GEOM_TAG,
+                                dlx.XML_ELEMENT_ALIGMENTS_ATTRIBUTE_NAME_TAG,
+                                str(position + 1), dlx.XML_DOCUMENT_ALIGMENTS_TAG, file_path))
+            return str_error
+        element_cross_section_content = element_cross_sections_content[dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_CROSS_SECT_GEOM_TAG]
+        cross_sect_list = []
+        if isinstance(element_cross_section_content, dict):
+            cross_sect_list.append(element_cross_section_content)
+        else:
+            cross_sect_list = element_cross_section_content
+        cross_section_by_distance = {}
+        for i in range(len(cross_sect_list)):
+            element_cross_section = cross_sect_list[i]
             yo = 1
+
         return str_error

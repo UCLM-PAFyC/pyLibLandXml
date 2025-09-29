@@ -16,22 +16,23 @@ sys.path.append(os.path.join(current_path))
 # from . import defs_landxml as dlx
 import defs_landxml as dlx
 
+# http://www.landxml.org/schema/landxml-1.2/documentation/LandXML-1.2Doc_Spiral.html
 class Spiral:
     def __init__(self, aligment):
         self.aligment = aligment
-        self.sta_start = None
-        self.desc = None
-        self.rot = None
-        self.spi_type = None
+        self.start_cumulative_distance = None
+        self.description = None
+        self.rotation = None
+        self.spiral_type = None
         self.constant = None
         self.length = None
-        self.dir_start = None
-        self.dir_end = None
+        self.direction_start = None
+        self.direction_end = None
         self.radius_start = None
         self.radius_end = None
-        self.start = None  # point
-        self.pi = None  # point
-        self.end = None  # point
+        self.point_start = None  # point
+        self.point_intersection = None  # point
+        self.point_end = None  # point
 
     def set_from_landxml_element(self,
                                  element):
@@ -41,7 +42,7 @@ class Spiral:
             return str_error
         value = element[dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_STA_START_TAG]
         try:
-            self.sta_start = float(value)
+            self.start_cumulative_distance = float(value)
         except ValueError:
             str_error = (
                 'Attribute: {} must be a float: {}'.
@@ -59,7 +60,7 @@ class Spiral:
                 format(dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_LENGTH_TAG, value))
             return str_error
         if dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_DESC_TAG in element:
-            self.desc = element[dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_DESC_TAG]
+            self.description = element[dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_DESC_TAG]
         if not dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_ROT_TAG in element:
             str_error = ('Not exists attribute: {}'.format(dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_ROT_TAG))
             return str_error
@@ -67,55 +68,67 @@ class Spiral:
         if not value in dlx.rotation_types:
             str_error = ('Invalid attribute value: {}\nmust be in: {}'.format(value, dlx.rotation_types))
             return str_error
-        self.rot = value
+        self.rotation = value
         if not dlx.XML_ELEMENT_SPIRAL_START_TAG in element:
             str_error = ('Not exists attribute: {}'.format(dlx.XML_ELEMENT_SPIRAL_START_TAG))
             return str_error
         value_list = element[dlx.XML_ELEMENT_SPIRAL_START_TAG].split(' ')
         try:
-            self.start = [float(char) for char in value_list]
+            self.point_start = [float(char) for char in value_list]
         except ValueError:
             str_error = (
                 'Attribute: {} must be a list of two float: {}'.
                 format(dlx.XML_ELEMENT_SPIRAL_START_TAG, element[dlx.XML_ELEMENT_SPIRAL_START_TAG]))
             return str_error
-        if len(self.start) != 2:
+        if len(self.point_start) != 2:
             str_error = (
                 'Attribute: {} must be a list of two float: {}'.
                 format(dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_STA_START_TAG, element[dlx.XML_ELEMENT_SPIRAL_START_TAG]))
             return str_error
+        if dlx.XML_FIRST_COORDINATE_IS_NORTH:
+            fc = self.point_start[1]
+            sc = self.point_start[0]
+            self.point_start = [fc, sc]
         if not dlx.XML_ELEMENT_SPIRAL_PI_TAG in element:
             str_error = ('Not exists attribute: {}'.format(dlx.XML_ELEMENT_SPIRAL_PI_TAG))
             return str_error
         value_list = element[dlx.XML_ELEMENT_SPIRAL_PI_TAG].split(' ')
         try:
-            self.pi = [float(char) for char in value_list]
+            self.point_intersection = [float(char) for char in value_list]
         except ValueError:
             str_error = (
                 'Attribute: {} must be a list of two float: {}'.
                 format(dlx.XML_ELEMENT_SPIRAL_PI_TAG, element[dlx.XML_ELEMENT_SPIRAL_PI_TAG]))
             return str_error
-        if len(self.pi) != 2:
+        if len(self.point_intersection) != 2:
             str_error = (
                 'Attribute: {} must be a list of two float: {}'.
                 format(dlx.XML_ELEMENT_SPIRAL_PI_TAG, element[dlx.XML_ELEMENT_SPIRAL_PI_TAG]))
             return str_error
+        if dlx.XML_FIRST_COORDINATE_IS_NORTH:
+            fc = self.point_intersection[1]
+            sc = self.point_intersection[0]
+            self.point_intersection = [fc, sc]
         if not dlx.XML_ELEMENT_SPIRAL_END_TAG in element:
             str_error = ('Not exists attribute: {}'.format(dlx.XML_ELEMENT_SPIRAL_END_TAG))
             return str_error
         value_list = element[dlx.XML_ELEMENT_SPIRAL_END_TAG].split(' ')
         try:
-            self.end = [float(char) for char in value_list]
+            self.point_end = [float(char) for char in value_list]
         except ValueError:
             str_error = (
                 'Attribute: {} must be a list of two float: {}'.
                 format(dlx.XML_ELEMENT_SPIRAL_END_TAG, element[dlx.XML_ELEMENT_SPIRAL_END_TAG]))
             return str_error
-        if len(self.end) != 2:
+        if len(self.point_end) != 2:
             str_error = (
                 'Attribute: {} must be a list of two float: {}'.
                 format(dlx.XML_ELEMENT_SPIRAL_END_TAG, element[dlx.XML_ELEMENT_SPIRAL_END_TAG]))
             return str_error
+        if dlx.XML_FIRST_COORDINATE_IS_NORTH:
+            fc = self.point_end[1]
+            sc = self.point_end[0]
+            self.point_end = [fc, sc]
         if not dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_SPI_TYPE_TAG in element:
             str_error = ('Not exists attribute: {}'.format(dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_SPI_TYPE_TAG))
             return str_error
@@ -123,7 +136,7 @@ class Spiral:
         if not value in dlx.spi_type_types:
             str_error = ('Invalid attribute value: {}\nmust be in: {}'.format(value, dlx.spi_type_types))
             return str_error
-        self.spi_type = value
+        self.spiral_type = value
         if not dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_RADIUS_START_TAG in element:
             str_error = ('Not exists attribute: {}'.format(dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_RADIUS_START_TAG))
             return str_error
@@ -149,7 +162,7 @@ class Spiral:
         if dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_DIR_START_TAG in element:
             value = element[dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_DIR_START_TAG]
             try:
-                self.dir_start = float(value)
+                self.direction_start = float(value)
             except ValueError:
                 str_error = (
                     'Attribute: {} must be a float: {}'.
@@ -158,7 +171,7 @@ class Spiral:
         if dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_DIR_END_TAG in element:
             value = element[dlx.XML_ELEMENT_SPIRAL_ATTRIBUTE_DIR_END_TAG]
             try:
-                self.dir_end = float(value)
+                self.direction_end = float(value)
             except ValueError:
                 str_error = (
                     'Attribute: {} must be a float: {}'.
