@@ -19,6 +19,7 @@ from Curve import Curve
 from Line import Line
 from Spiral import Spiral
 from ProfileVerticalAligment import ProfileVerticalAligment
+from CrossSection import CrossSection
 
 # http://www.landxml.org/schema/landxml-1.2/documentation/landxml-1.2doc_alignment.html
 class Aligment:
@@ -209,6 +210,17 @@ class Aligment:
         cross_section_by_distance = {}
         for i in range(len(cross_sect_list)):
             element_cross_section = cross_sect_list[i]
-            yo = 1
-
+            cross_section = CrossSection(self)
+            str_error = cross_section.set_from_landxml_element(element_cross_section)
+            if str_error:
+                str_error = (
+                    'Setting element: {} in position: {} in element: {}  in element: {}\n in position in element: {} in LandXml file:\n{}'.
+                    format(dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_CROSS_SECT_GEOM_TAG, str(i + 1),
+                           dlx.XML_ELEMENT_ALIGMENTS_ALIGMENT_CROSS_SECTS_GEOM_TAG,
+                           dlx.XML_ELEMENT_ALIGMENTS_ATTRIBUTE_NAME_TAG,
+                           str(position + 1), dlx.XML_DOCUMENT_ALIGMENTS_TAG, file_path))
+                return str_error
+            acumulative_distance_mm_int = int(cross_section.start_cumulative_distance * 1000.)
+            cross_section_by_distance[acumulative_distance_mm_int] = cross_section
+        self.cross_section_by_cumulative_distance_mm = dict(sorted(cross_section_by_distance.items()))
         return str_error
