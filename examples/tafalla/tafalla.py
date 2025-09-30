@@ -15,12 +15,17 @@ def main():
     if str_error:
         print(f"Error:\n\t{str_error}")
         return
-    output_json_file_path = current_path + "/data/LAV_Tafalla_eje+rasante+subbalasto.json"
-    output_json_file_path = os.path.normpath(output_json_file_path)
-    str_error = landXml.write_to_json_file(output_json_file_path)
+    points_distance = 1.0
+    str_error = landXml.set_axis_points(points_distance)
     if str_error:
         print(f"Error:\n\t{str_error}")
         return
+    # output_json_file_path = current_path + "/data/LAV_Tafalla_eje+rasante+subbalasto.json"
+    # output_json_file_path = os.path.normpath(output_json_file_path)
+    # str_error = landXml.write_to_json_file(output_json_file_path)
+    # if str_error:
+    #     print(f"Error:\n\t{str_error}")
+    #     return
 
 
 if __name__ == '__main__':

@@ -34,6 +34,17 @@ class Aligment:
         self.profile_aligment_by_cumulative_distance_mm = None
         self.cross_section_by_cumulative_distance_mm = None
 
+    def set_axis_points(self,
+                        cumulative_distance,
+                        points_distance):
+        str_error = ''
+        axis_points_by_cumulative_distance = {}
+        if cumulative_distance > self.start_cumulative_distance:
+            yo = 1
+
+
+        return str_error, axis_points_by_cumulative_distance
+
     def set_from_landxml_element(self,
                                  element,
                                  position,

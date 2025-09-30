@@ -28,11 +28,31 @@ class LandXml:
         self.crs_id = None
         self.crs_epsg_code = None
         self.crs_vertical_epsg_code = None
-        self.alignment_by_cumulative_distance_mm = []
+        self.alignment_by_cumulative_distance_mm = None
+        self.axis_points_by_cumulative_distance = None
 
     def clear(self):
         self.file_path = None
         self.alignment_by_cumulative_distance_mm.clear()
+
+    def set_axis_points(self,
+                        points_distance):
+        str_error = ''
+        if self.alignment_by_cumulative_distance_mm is None:
+            str_error = ('LandXml object is not initialized yet.')
+            return str_error
+        cumulative_distance = res = next(iter(self.alignment_by_cumulative_distance_mm)) / 1000.
+        axis_points_by_cumulative_distance = {}
+        for cumulative_distance_mm in self.alignment_by_cumulative_distance_mm:
+            aligment = self.alignment_by_cumulative_distance_mm[cumulative_distance_mm]
+            str_error, aligment_axis_points_by_cumulative_distance = aligment.set_axis_points(cumulative_distance,
+                                                                                              points_distance)
+            if str_error:
+                str_error = ('Setting axis points for aligment: {}\nError:\n{}'.format(aligment.name, str_error))
+                return str_error
+            axis_points_by_cumulative_distance.update(aligment_axis_points_by_cumulative_distance)
+            yo = 1
+        return str_error
 
     def set_from_file(self,
                       file_path):
