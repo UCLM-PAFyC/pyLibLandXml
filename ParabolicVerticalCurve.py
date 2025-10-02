@@ -29,3 +29,11 @@ class ParabolicVerticalCurve:
         self.description = None
         self.cumulative_distance = None
         self.elevation = None
+        self.before_inclination_pu = None
+        self.after_inclination_pu = None
+        self.inclination_difference = None
+        self.kv = None
+        self.start_cumulative_distance = None
+        self.computed_cumulative_distance_end = None
+        self.elevation_start = None
+        self.elevation_end = None

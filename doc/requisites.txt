@@ -12,3 +12,6 @@ pip install xmltodict
 desde la consola de osgeo4w
 pip install pyclothoids
 
+- ¿https://pypi.org/project/conics/? https://github.com/sergiud/conics/tree/master
+
+

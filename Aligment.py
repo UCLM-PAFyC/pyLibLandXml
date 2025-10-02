@@ -33,6 +33,51 @@ class Aligment:
         self.horizontal_aligment_by_cumulative_distance_mm = None
         self.profile_aligment_by_cumulative_distance_mm = None
         self.cross_section_by_cumulative_distance_mm = None
+        self.computed_cumulative_distance_end = None
+        self.computed_parameters = False
+
+    def compute_parameters(self):
+        str_error = ''
+        component_count = 0
+        for aligment_cumulative_distance_mm in self.horizontal_aligment_by_cumulative_distance_mm:
+            aligment_component = self.horizontal_aligment_by_cumulative_distance_mm[
+                aligment_cumulative_distance_mm]
+            str_error = aligment_component.compute_parameters()
+            if str_error:
+                str_error = ('Computing paramerers for component position: {}\nError:\n{}'
+                             .format(str(component_count + 1), str_error))
+                return str_error
+            component_count = component_count + 1
+            if component_count == len(self.horizontal_aligment_by_cumulative_distance_mm):
+                self.computed_cumulative_distance_end = aligment_component.computed_cumulative_distance_end
+            self.computed_parameters = True
+        return str_error
+
+    def compute_point_from_cumulative_distance(self,
+                                               cumulative_distance):
+        str_error = ''
+        point = None
+        if not self.computed_parameters:
+            str_error = self.compute_parameters()
+            if str_error:
+                return str_error, point
+        if cumulative_distance < self.start_cumulative_distance:
+            str_error = ('Input cumulative distance: {}\nis less than start cumulative distance: {}.'.
+                         format(cumulative_distance, self.start_cumulative_distance))
+            return str_error, point
+        if cumulative_distance > self.computed_cumulative_distance_end:
+            str_error = ('Input cumulative distance: {}\nis less than computed cumulative end: {}.'.
+                         format(cumulative_distance, self.computed_cumulative_distance_end))
+            return str_error, point
+        component_count = 0
+        for aligment_cumulative_distance_mm in self.horizontal_aligment_by_cumulative_distance_mm:
+            aligment_component = self.horizontal_aligment_by_cumulative_distance_mm[
+                aligment_cumulative_distance_mm]
+            if (cumulative_distance >= aligment_component.start_cumulative_distance
+                    and cumulative_distance <= aligment_component.computed_cumulative_distance_end):
+                str_error, point = aligment_component.compute_point_from_cumulative_distance(cumulative_distance)
+                break
+        return str_error, point
 
     def set_axis_points(self,
                         cumulative_distance,

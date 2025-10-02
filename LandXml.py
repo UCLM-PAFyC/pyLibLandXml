@@ -30,10 +30,37 @@ class LandXml:
         self.crs_vertical_epsg_code = None
         self.alignment_by_cumulative_distance_mm = None
         self.axis_points_by_cumulative_distance_mm = None
+        self.start_cumulative_distance = None
+        self.computed_cumulative_distance_end = None
+        self.computed_parameters = False
 
     def clear(self):
         self.file_path = None
         self.alignment_by_cumulative_distance_mm.clear()
+
+    def compute_point_from_cumulative_distance(self,
+                                               cumulative_distance):
+        str_error = ''
+        point = None
+        if not self.computed_parameters:
+            str_error = ('LandXml object is not initialized.')
+            if str_error:
+                return str_error, point
+        if cumulative_distance < self.start_cumulative_distance:
+            str_error = ('Input cumulative distance: {}\nis less than start cumulative distance: {}.'.
+                         format(cumulative_distance, self.start_cumulative_distance))
+            return str_error, point
+        if cumulative_distance > self.computed_cumulative_distance_end:
+            str_error = ('Input cumulative distance: {}\nis less than computed cumulative end: {}.'.
+                         format(cumulative_distance, self.computed_cumulative_distance_end))
+            return str_error, point
+        for cumulative_distance_mm in self.alignment_by_cumulative_distance_mm:
+            aligment = self.alignment_by_cumulative_distance_mm[cumulative_distance_mm]
+            if (cumulative_distance >= aligment.start_cumulative_distance
+                    and cumulative_distance <= aligment.computed_cumulative_distance_end):
+                str_error, point = aligment.compute_point_from_cumulative_distance(cumulative_distance)
+                break
+        return str_error, point
 
     def get_axis_points_as_wktlinestring(self):
         str_error = ''
@@ -213,8 +240,19 @@ class LandXml:
             cumulative_distance_mm_int = int(aligment.start_cumulative_distance * 1000.)
             alignment_by_cumulative_distance[cumulative_distance_mm_int] = aligment
         self.alignment_by_cumulative_distance_mm = dict(sorted(alignment_by_cumulative_distance.items()))
-
-        yo = 1
+        cont_aligment = 0
+        for cumulative_distance_mm in self.alignment_by_cumulative_distance_mm:
+            aligment = self.alignment_by_cumulative_distance_mm[cumulative_distance_mm]
+            str_error = aligment.compute_parameters()
+            if str_error:
+                str_error = ('Computing parameters for aligment: {}\nError:\n{}'.format(aligment.name, str_error))
+                return str_error
+            if cont_aligment == 0:
+                self.start_cumulative_distance = aligment.start_cumulative_distance
+            cont_aligment = cont_aligment + 1
+            if cont_aligment == len(self.alignment_by_cumulative_distance_mm):
+                self.computed_cumulative_distance_end = aligment.computed_cumulative_distance_end
+        self.computed_parameters = True
         return str_error
 
     def write_to_json_file(self,

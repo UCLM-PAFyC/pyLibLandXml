@@ -25,6 +25,97 @@ class ProfileVerticalAligment:
         self.points_vertical_intersection_by_cumulative_distance_mm = None # [cumulative distance, elevation] ¿puede estar vacio? de momento supongo que no, al menos origen y fin
         self.parabolic_vertical_curve_by_cumulative_distance_mm = None # ¿puede estar vacio? de momento supongo que no, al menos uno, ¿recta?
         self.start_cumulative_distance = None # min acumulative distance
+        self.computed_parameters = False
+        self.computed_cumulative_distance_end = None
+        self.vertical_aligment_by_start_cumulative_distance_mm = None
+
+    def compute_parameters(self):
+        str_error = ''
+        vertical_aligment_by_start_cumulative_distance_mm = {}
+        parabolic_count = 0
+        # first vertical aligment type parabola
+        for cumulative_distance_mm in self.parabolic_vertical_curve_by_cumulative_distance_mm:
+            parabolic_vertical_curve = self.parabolic_vertical_curve_by_cumulative_distance_mm[cumulative_distance_mm]
+            ip_cumulative_distance = parabolic_vertical_curve.cumulative_distance
+            ip_elevation = parabolic_vertical_curve.elevation
+            length = parabolic_vertical_curve.length
+            # search point before (type PVI or PI)
+            before_cumulative_distance = None
+            before_elevation = None
+            after_cumulative_distance = None
+            after_elevation = None
+            for aux_ad_mm in self.points_vertical_intersection_by_cumulative_distance_mm:
+                aux_acumulative_distance = self.points_vertical_intersection_by_cumulative_distance_mm[aux_ad_mm][0]
+                aux_elevation = self.points_vertical_intersection_by_cumulative_distance_mm[aux_ad_mm][1]
+                if aux_acumulative_distance < ip_cumulative_distance:
+                    if before_cumulative_distance is None:
+                        before_cumulative_distance = aux_acumulative_distance
+                        before_elevation = aux_elevation = aux_elevation
+                    else:
+                        if (np.abs(aux_acumulative_distance - ip_cumulative_distance)
+                                < np.abs(before_cumulative_distance - ip_cumulative_distance)):
+                            before_cumulative_distance = aux_acumulative_distance
+                            before_elevation = aux_elevation = aux_elevation
+                if aux_acumulative_distance > ip_cumulative_distance:
+                    if after_cumulative_distance is None:
+                        after_cumulative_distance = aux_acumulative_distance
+                        after_elevation = aux_elevation = aux_elevation
+                    else:
+                        if (np.abs(aux_acumulative_distance - ip_cumulative_distance)
+                                < np.abs(after_cumulative_distance - ip_cumulative_distance)):
+                            after_cumulative_distance = aux_acumulative_distance
+                            after_elevation = aux_elevation = aux_elevation
+            for aux_ad_mm in self.parabolic_vertical_curve_by_cumulative_distance_mm:
+                if aux_ad_mm == cumulative_distance_mm:
+                    continue
+                aux_acumulative_distance = self.points_vertical_intersection_by_cumulative_distance_mm[aux_ad_mm][0]
+                aux_elevation = self.points_vertical_intersection_by_cumulative_distance_mm[aux_ad_mm][1]
+                if aux_acumulative_distance < ip_cumulative_distance:
+                    if before_cumulative_distance is None:
+                        before_cumulative_distance = aux_acumulative_distance
+                        before_elevation = aux_elevation = aux_elevation
+                    else:
+                        if (np.abs(aux_acumulative_distance - ip_cumulative_distance)
+                                < np.abs(before_cumulative_distance - ip_cumulative_distance)):
+                            before_cumulative_distance = aux_acumulative_distance
+                            before_elevation = aux_elevation = aux_elevation
+                if aux_acumulative_distance > ip_cumulative_distance:
+                    if after_cumulative_distance is None:
+                        after_cumulative_distance = aux_acumulative_distance
+                        after_elevation = aux_elevation = aux_elevation
+                    else:
+                        if (np.abs(aux_acumulative_distance - ip_cumulative_distance)
+                                < np.abs(after_cumulative_distance - ip_cumulative_distance)):
+                            after_cumulative_distance = aux_acumulative_distance
+                            after_elevation = aux_elevation = aux_elevation
+            if before_cumulative_distance is None:
+                str_error = ('Not found before point for parabola position: {}'.format(str(parabolic_count + 1)))
+                return str_error
+            if after_cumulative_distance is None:
+                str_error = ('Not found after point for parabola position: {}'.format(str(parabolic_count + 1)))
+                return str_error
+            parabolic_vertical_curve.before_inclination_pu = ((before_elevation - ip_elevation)
+                                     / (ip_cumulative_distance - before_cumulative_distance))
+            parabolic_vertical_curve.after_inclination_pu = ((after_elevation - ip_elevation)
+                                     / (after_cumulative_distance - ip_cumulative_distance))
+            parabolic_vertical_curve.inclination_difference = (parabolic_vertical_curve.before_inclination_pu
+                                                               - parabolic_vertical_curve.after_inclination_pu)
+            parabolic_vertical_curve.kv = length / parabolic_vertical_curve.inclination_difference
+            parabolic_vertical_curve.start_cumulative_distance = parabolic_vertical_curve.cumulative_distance - length / 2.
+            parabolic_vertical_curve.computed_cumulative_distance_end = parabolic_vertical_curve.cumulative_distance + length / 2.
+            parabolic_vertical_curve.elevation_start = (before_elevation
+                                                        + parabolic_vertical_curve.before_inclination_pu
+                                                        * (parabolic_vertical_curve.start_cumulative_distance
+                                                           - before_cumulative_distance))
+            parabolic_vertical_curve.elevation_start = (after_elevation
+                                                        - parabolic_vertical_curve.after_inclination_pu
+                                                        * (after_cumulative_distance
+                                                           - parabolic_vertical_curve.computed_cumulative_distance_end))
+            start_cumulative_distance_mm = int(parabolic_vertical_curve.start_cumulative_distance * 1000.)
+            vertical_aligment_by_start_cumulative_distance_mm[start_cumulative_distance_mm] = parabolic_vertical_curve
+
+        self.vertical_aligment_by_start_cumulative_distance_mm = dict(sorted(vertical_aligment_by_start_cumulative_distance_mm.items()))
+        return str_error
 
     def set_from_landxml_element(self,
                                  element):
@@ -136,6 +227,7 @@ class ProfileVerticalAligment:
             parabolic_vertical_curve_by_cumulative_distance[cumulative_distance_mm_int] = parabolic_vertical_curve
         self.parabolic_vertical_curve_by_cumulative_distance_mm \
             = dict(sorted(parabolic_vertical_curve_by_cumulative_distance.items()))
+        str_error = self.compute_parameters()
         return str_error
 
 
