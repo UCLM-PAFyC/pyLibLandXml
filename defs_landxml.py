@@ -1,6 +1,8 @@
 # authors:
 # David Hernandez Lopez, david.hernandez@uclm.es
 
+CUMULATIVE_DISTANCE_IGNORE_FIRST_POINT_TOLERANCE = 1.0
+
 XML_FIRST_COORDINATE_IS_NORTH = True
 XML_DOCUMENT_TAG = "LandXML"
 XML_DOCUMENT_ATTRIBUTE_VERSION_TAG = "@version"
@@ -39,7 +41,9 @@ coord_geom_types = ["Curve", "Spiral", "Line"]
 XML_ELEMENT_CURVE_TAG = "Curve"
 XML_ELEMENT_CURVE_ATTRIBUTE_STA_START_TAG = "@staStart"
 XML_ELEMENT_CURVE_ATTRIBUTE_ROT_TAG = "@rot"
-rotation_types = ["cw", "ccw"]
+rotation_type_cw = "cw"
+rotation_type_ccw = "ccw"
+rotation_types = [rotation_type_cw, rotation_type_ccw]
 XML_ELEMENT_CURVE_ATTRIBUTE_CRV_TYPE_TAG = "@crvType"
 crv_type_types = ["arc"]
 XML_ELEMENT_CURVE_ATTRIBUTE_RADIUS_TAG = "@radius"

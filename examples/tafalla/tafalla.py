@@ -15,8 +15,12 @@ def main():
     if str_error:
         print(f"Error:\n\t{str_error}")
         return
-    points_distance = 1.0
+    points_distance = 10.0
     str_error = landXml.set_axis_points(points_distance)
+    if str_error:
+        print(f"Error:\n\t{str_error}")
+        return
+    str_error, wkt_linestring = landXml.get_axis_points_as_wktlinestring()
     if str_error:
         print(f"Error:\n\t{str_error}")
         return

@@ -8,6 +8,7 @@ import datetime
 import json
 import xmltodict
 import numpy as np
+from pyclothoids import Clothoid
 
 current_path = os.path.dirname(__file__)
 sys.path.append(os.path.join(current_path, '..'))
@@ -33,6 +34,87 @@ class Spiral:
         self.point_start = None  # point
         self.point_intersection = None  # point
         self.point_end = None  # point
+        self.tx = None
+        self.ty = None
+        self.xpi = None
+        self.ypi = None
+        self.x0 = None
+        self.y0 = None
+        self.x1 = None
+        self.y1 = None
+        self.azi_0_pi = None
+        self.t0 = None
+        self.azi_1_pi = None
+        self.t1 = None
+        self.t1 = None
+        self.clothoid = None
+        self.computed_parameters = False
+        self.computed_cumulative_distance_end = None
+
+    def compute_parameters(self):
+        str_error = None
+        if self.computed_parameters:
+            return str_error
+        if self.point_start is None:
+            str_error = "Object Spiral is not initialized"
+            return str_error
+        xpi = self.point_intersection[0]
+        ypi = self.point_intersection[1]
+        x0 = self.point_start[0]
+        y0 = self.point_start[1]
+        x1 = self.point_end[0]
+        y1 = self.point_end[1]
+        tx = x0
+        if x1 < tx:
+            tx = x1
+        if xpi < tx:
+            tx = xpi
+        ty = y0
+        if y1 < ty:
+            ty = y1
+        if ypi < ty:
+            ty = ypi
+        self.tx = tx
+        self.ty = ty
+        self.xpi = xpi - tx
+        self.ypi = ypi - ty
+        self.x0 = x0 - tx
+        self.y0 = y0 - ty
+        self.x1 = x1 - tx
+        self.y1 = y1 - ty
+        self.azi_0_pi = np.arctan2(xpi - x0, ypi - y0)
+        self.t0 = np.pi / 2. - self.azi_0_pi
+        self.azi_1_pi = np.arctan2(xpi - x1, ypi - y1)
+        self.t1 = np.pi / 2. - self.azi_1_pi
+        self.t1 = self.t1 + np.pi
+        self.clothoid = Clothoid.G1Hermite(self.x0, self.y0, self.t0, self.x1, self.y1, self.t1)
+        self.computed_cumulative_distance_end = self.start_cumulative_distance + self.length
+        self.computed_parameters = True
+        return str_error
+
+    def compute_point_from_cumulative_distance(self,
+                                               cumulative_distance):
+        str_error = ''
+        point = None
+        if not self.computed_parameters:
+            str_error = self.compute_parameters()
+            if str_error:
+                return str_error, point
+        if cumulative_distance < self.start_cumulative_distance:
+            str_error = ('Input cumulative distance: {}\nis less than start cumulative distance: {}.'.
+                         format(cumulative_distance, self.start_cumulative_distance))
+            return str_error, point
+        if cumulative_distance > self.computed_cumulative_distance_end:
+            str_error = ('Input cumulative distance: {}\nis less than computed cumulative end: {}.'.
+                         format(cumulative_distance, self.computed_cumulative_distance_end))
+            return str_error, point
+        s = cumulative_distance - self.start_cumulative_distance
+        fc = self.clothoid.X(s)
+        sc = self.clothoid.Y(s)
+        fc = fc + self.tx
+        sc = sc + self.ty
+        point = [fc, sc]
+        return str_error, point
 
     def set_from_landxml_element(self,
                                  element):

@@ -38,12 +38,37 @@ class Aligment:
                         cumulative_distance,
                         points_distance):
         str_error = ''
-        axis_points_by_cumulative_distance = {}
-        if cumulative_distance > self.start_cumulative_distance:
-            yo = 1
-
-
-        return str_error, axis_points_by_cumulative_distance
+        axis_points_by_cumulative_distance_mm = {}
+        component_count = 0
+        for aligment_cumulative_distance_mm in self.horizontal_aligment_by_cumulative_distance_mm:
+            aligment_component = self.horizontal_aligment_by_cumulative_distance_mm[
+                aligment_cumulative_distance_mm]
+            points_by_cumulative_distance_mm = {}
+            points_by_cumulative_distance_mm[int(aligment_component.start_cumulative_distance * 1000.)] \
+                = aligment_component.point_start
+            if ((cumulative_distance - aligment_component.start_cumulative_distance)
+                    < dlx.CUMULATIVE_DISTANCE_IGNORE_FIRST_POINT_TOLERANCE):
+                cumulative_distance = cumulative_distance + points_distance
+            if not aligment_component.computed_parameters:
+                str_error = aligment_component.compute_parameters()
+                if str_error:
+                    str_error = ('Computing paramerers for curve in component position: {}\nError:\n{}'
+                                 .format(str(component_count + 1), str_error))
+                    return str_error, axis_points_by_cumulative_distance_mm, cumulative_distance
+            while cumulative_distance < aligment_component.computed_cumulative_distance_end:
+                if ((aligment_component.computed_cumulative_distance_end - cumulative_distance)
+                        < dlx.CUMULATIVE_DISTANCE_IGNORE_FIRST_POINT_TOLERANCE):
+                    break
+                str_error, point = aligment_component.compute_point_from_cumulative_distance(cumulative_distance)
+                points_by_cumulative_distance_mm[int(cumulative_distance * 1000.)] = point
+                cumulative_distance = cumulative_distance + points_distance
+            points_by_cumulative_distance_mm[int(aligment_component.computed_cumulative_distance_end * 1000.)] \
+                = aligment_component.point_end
+            axis_points_by_cumulative_distance_mm.update(points_by_cumulative_distance_mm)
+            component_count = component_count + 1
+            # if component_count > 1:
+            #     break
+        return str_error, axis_points_by_cumulative_distance_mm, cumulative_distance
 
     def set_from_landxml_element(self,
                                  element,

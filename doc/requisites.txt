@@ -7,3 +7,8 @@ siempre que la versión de python coincida.
 - xmltodict
 desde la consola de osgeo4w
 pip install xmltodict
+
+- pyclothoids, https://pypi.org/project/pyclothoids/
+desde la consola de osgeo4w
+pip install pyclothoids
+

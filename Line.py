@@ -25,6 +25,49 @@ class Line:
         self.direction = None
         self.point_start = None  # [fc, sc]
         self.point_end = None  # [fc, sc]
+        self.computed_azimuth = None
+        self.computed_distance = None
+        self.computed_cumulative_distance_end = None
+        self.computed_parameters = False
+
+
+    def compute_parameters(self):
+        str_error = ''
+        if self.computed_parameters:
+            return str_error
+        if self.point_start is None:
+            str_error = 'Object curve is not initialized'
+            return str_error
+        self.computed_azimuth = np.arctan2(self.point_end[0] - self.point_start[0],
+                                               self.point_end[1] - self.point_start[1])
+        self.computed_distance = np.sqrt((self.point_end[0] - self.point_start[0]) ** 2.
+                                         + (self.point_end[1] - self.point_start[1]) ** 2.)
+        if self.computed_azimuth < 0:
+            self.computed_azimuth += 2 * math.pi
+        self.computed_cumulative_distance_end = self.start_cumulative_distance + self.computed_distance
+        return str_error
+
+    def compute_point_from_cumulative_distance(self,
+                                               cumulative_distance):
+        str_error = ''
+        point = None
+        if not self.computed_parameters:
+            str_error = self.compute_parameters()
+            if str_error:
+                return str_error, point
+        if cumulative_distance < self.start_cumulative_distance:
+            str_error = ('Input cumulative distance: {}\nis less than start cumulative distance: {}.'.
+                         format(cumulative_distance, self.start_cumulative_distance))
+            return str_error, point
+        if cumulative_distance > self.computed_cumulative_distance_end:
+            str_error = ('Input cumulative distance: {}\nis less than computed cumulative end: {}.'.
+                         format(cumulative_distance, self.computed_cumulative_distance_end))
+            return str_error, point
+        distance = cumulative_distance - self.start_cumulative_distance
+        fc = self.point_start[0] + distance * np.sin(self.computed_azimuth)
+        sc = self.point_start[1] + distance * np.cos(self.computed_azimuth)
+        point = [fc, sc]
+        return str_error, point
 
     def set_from_landxml_element(self,
                                  element):
