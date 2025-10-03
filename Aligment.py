@@ -44,14 +44,53 @@ class Aligment:
                 aligment_cumulative_distance_mm]
             str_error = aligment_component.compute_parameters()
             if str_error:
-                str_error = ('Computing paramerers for component position: {}\nError:\n{}'
+                str_error = ('Computing paramerers for horizontal component position: {}\nError:\n{}'
                              .format(str(component_count + 1), str_error))
                 return str_error
             component_count = component_count + 1
             if component_count == len(self.horizontal_aligment_by_cumulative_distance_mm):
                 self.computed_cumulative_distance_end = aligment_component.computed_cumulative_distance_end
-            self.computed_parameters = True
+        component_count = 0
+        for profile_aligment_cumulative_distance_mm in self.profile_aligment_by_cumulative_distance_mm:
+            profile_aligment_component = self.profile_aligment_by_cumulative_distance_mm[
+                profile_aligment_cumulative_distance_mm]
+            str_error = profile_aligment_component.compute_parameters()
+            if str_error:
+                str_error = ('Computing paramerers for vertial component position: {}\nError:\n{}'
+                             .format(str(component_count + 1), str_error))
+                return str_error
+            component_count = component_count + 1
+            # if component_count == len(self.horizontal_aligment_by_cumulative_distance_mm):
+            #     self.computed_cumulative_distance_end = aligment_component.computed_cumulative_distance_end
+        self.computed_parameters = True
         return str_error
+
+    def compute_elevation_from_cumulative_distance(self,
+                                                   cumulative_distance):
+        str_error = ''
+        elevation = None
+        if not self.computed_parameters:
+            str_error = self.compute_parameters()
+            if str_error:
+                return str_error, elevation
+        if cumulative_distance < self.start_cumulative_distance:
+            str_error = ('Input cumulative distance: {}\nis less than start cumulative distance: {}.'.
+                         format(cumulative_distance, self.start_cumulative_distance))
+            return str_error, elevation
+        if cumulative_distance > self.computed_cumulative_distance_end:
+            str_error = ('Input cumulative distance: {}\nis less than computed cumulative end: {}.'.
+                         format(cumulative_distance, self.computed_cumulative_distance_end))
+            return str_error, elevation
+        profile_component_count = 0
+        for profile_aligment_cumulative_distance_mm in self.profile_aligment_by_cumulative_distance_mm:
+            profile_aligment_component = self.profile_aligment_by_cumulative_distance_mm[
+                profile_aligment_cumulative_distance_mm]
+            if (cumulative_distance >= profile_aligment_component.start_cumulative_distance
+                    and cumulative_distance <= profile_aligment_component.computed_cumulative_distance_end):
+                str_error, elevation = profile_aligment_component.compute_elevation_from_cumulative_distance(cumulative_distance)
+                break
+            profile_component_count = profile_component_count + 1
+        return str_error, elevation
 
     def compute_point_from_cumulative_distance(self,
                                                cumulative_distance):
@@ -77,6 +116,11 @@ class Aligment:
                     and cumulative_distance <= aligment_component.computed_cumulative_distance_end):
                 str_error, point = aligment_component.compute_point_from_cumulative_distance(cumulative_distance)
                 break
+            component_count = component_count + 1
+        str_error, elevation = self.compute_elevation_from_cumulative_distance(cumulative_distance)
+        if str_error:
+            return str_error, elevation
+        point.append(elevation)
         return str_error, point
 
     def set_axis_points(self,
@@ -89,8 +133,12 @@ class Aligment:
             aligment_component = self.horizontal_aligment_by_cumulative_distance_mm[
                 aligment_cumulative_distance_mm]
             points_by_cumulative_distance_mm = {}
-            points_by_cumulative_distance_mm[int(aligment_component.start_cumulative_distance * 1000.)] \
-                = aligment_component.point_start
+            start_point = aligment_component.point_start
+            str_error, elevation = self.compute_elevation_from_cumulative_distance(aligment_component.start_cumulative_distance)
+            if str_error:
+                return str_error, axis_points_by_cumulative_distance_mm, cumulative_distance
+            start_point.append(elevation)
+            points_by_cumulative_distance_mm[int(aligment_component.start_cumulative_distance * 1000.)] = start_point
             if ((cumulative_distance - aligment_component.start_cumulative_distance)
                     < dlx.CUMULATIVE_DISTANCE_IGNORE_FIRST_POINT_TOLERANCE):
                 cumulative_distance = cumulative_distance + points_distance
@@ -105,10 +153,20 @@ class Aligment:
                         < dlx.CUMULATIVE_DISTANCE_IGNORE_FIRST_POINT_TOLERANCE):
                     break
                 str_error, point = aligment_component.compute_point_from_cumulative_distance(cumulative_distance)
+                if str_error:
+                    return str_error, axis_points_by_cumulative_distance_mm, cumulative_distance
+                str_error, elevation = self.compute_elevation_from_cumulative_distance(cumulative_distance)
+                if str_error:
+                    return str_error, axis_points_by_cumulative_distance_mm, cumulative_distance
+                point.append(elevation)
                 points_by_cumulative_distance_mm[int(cumulative_distance * 1000.)] = point
                 cumulative_distance = cumulative_distance + points_distance
-            points_by_cumulative_distance_mm[int(aligment_component.computed_cumulative_distance_end * 1000.)] \
-                = aligment_component.point_end
+            end_point = aligment_component.point_end
+            str_error, elevation = self.compute_elevation_from_cumulative_distance(aligment_component.computed_cumulative_distance_end)
+            if str_error:
+                return str_error, axis_points_by_cumulative_distance_mm, cumulative_distance
+            end_point.append(elevation)
+            points_by_cumulative_distance_mm[int(aligment_component.computed_cumulative_distance_end * 1000.)] = end_point
             axis_points_by_cumulative_distance_mm.update(points_by_cumulative_distance_mm)
             component_count = component_count + 1
             # if component_count > 1:

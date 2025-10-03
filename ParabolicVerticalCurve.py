@@ -25,10 +25,10 @@ class ParabolicVerticalCurve:
                  cumulative_distance,
                  elevation):
         self.profile_aligment = profile_aligment
-        self.length = None
-        self.description = None
-        self.cumulative_distance = None
-        self.elevation = None
+        self.length = length
+        self.description = desc
+        self.cumulative_distance = cumulative_distance
+        self.elevation = elevation
         self.before_inclination_pu = None
         self.after_inclination_pu = None
         self.inclination_difference = None
@@ -37,3 +37,25 @@ class ParabolicVerticalCurve:
         self.computed_cumulative_distance_end = None
         self.elevation_start = None
         self.elevation_end = None
+        self.computed_parameters = False
+
+    def compute_elevation_from_cumulative_distance(self,
+                                                   cumulative_distance):
+        str_error = ''
+        elevation = None
+        if not self.computed_parameters:
+            str_error = ('ParabolicVerticalCurve object is not initialized.')
+            if str_error:
+                return str_error, elevation
+        if cumulative_distance < self.start_cumulative_distance:
+            str_error = ('Input cumulative distance: {}\nis less than start cumulative distance: {}.'.
+                         format(cumulative_distance, self.start_cumulative_distance))
+            return str_error, elevation
+        if cumulative_distance > self.computed_cumulative_distance_end:
+            str_error = ('Input cumulative distance: {}\nis less than computed cumulative end: {}.'.
+                         format(cumulative_distance, self.computed_cumulative_distance_end))
+            return str_error, elevation
+        inc_s = cumulative_distance - self.start_cumulative_distance
+        elevation = self.elevation_start + inc_s ** 2. / (2. * self.kv)
+        return str_error, elevation
+

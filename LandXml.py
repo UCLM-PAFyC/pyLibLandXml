@@ -68,14 +68,21 @@ class LandXml:
             str_error = ('Axis points object is not initialized')
             return str_error
         wkt_linestring = "LINESTRING("
+        wkt_profile_linestring = "LINESTRING("
+        start_cumulative_distance = None
         np = 0
         for cumulative_distance_mm in self.axis_points_by_cumulative_distance_mm:
+            cumulative_distance = self.axis_points_by_cumulative_distance_mm[cumulative_distance_mm]
+            if np == 0:
+                start_cumulative_distance = cumulative_distance
             if np > 0:
                 wkt_linestring += ","
             pto = self.axis_points_by_cumulative_distance_mm[cumulative_distance_mm]
-            wkt_linestring += ('{:.4f} {:.4f}'.format(pto[0], pto[1]))
+            wkt_linestring += ('{:.4f} {:.4f} {:.4f}'.format(pto[0], pto[1], pto[2]))
+            wkt_profile_linestring += ('{:.4f} {:.4f}'.format(cumulative_distance - start_cumulative_distance, pto[2]))
             np = np + 1
         wkt_linestring += ")"
+        wkt_profile_linestring += ")"
         return str_error, wkt_linestring
 
     def set_axis_points(self,
