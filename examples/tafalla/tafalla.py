@@ -20,7 +20,7 @@ def main():
     if str_error:
         print(f"Error:\n\t{str_error}")
         return
-    str_error, wkt_linestring = landXml.get_axis_points_as_wktlinestring()
+    str_error, wkt_linestring, wkt_profile_linestring = landXml.get_axis_points_as_wktlinestring()
     if str_error:
         print(f"Error:\n\t{str_error}")
         return

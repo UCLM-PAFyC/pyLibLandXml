@@ -56,6 +56,7 @@ class ParabolicVerticalCurve:
                          format(cumulative_distance, self.computed_cumulative_distance_end))
             return str_error, elevation
         inc_s = cumulative_distance - self.start_cumulative_distance
-        elevation = self.elevation_start + inc_s ** 2. / (2. * self.kv)
+        elevation = (self.elevation_start + self.before_inclination_pu * inc_s
+                     + inc_s ** 2. / (2. * self.kv))
         return str_error, elevation
 

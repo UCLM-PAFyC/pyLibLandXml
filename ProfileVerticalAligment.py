@@ -257,7 +257,30 @@ class ProfileVerticalAligment:
                 start_cumulative_distance_mm = int(before_cumulative_distance * 1000.)
                 vertical_aligment_by_start_cumulative_distance_mm[start_cumulative_distance_mm] = line_vertical_curve
             pvi_count = pvi_count + 1
-        self.vertical_aligment_by_start_cumulative_distance_mm = dict(sorted(vertical_aligment_by_start_cumulative_distance_mm.items()))
+        # compute lines between parabolas
+        sorted_vertical_aligment_by_start_cumulative_distance_mm \
+            = dict(sorted(vertical_aligment_by_start_cumulative_distance_mm.items()))
+        cumulative_distances_mm = list(sorted_vertical_aligment_by_start_cumulative_distance_mm.keys())
+        vertical_aligment_by_start_cumulative_distance_mm = {}
+        for i in range(len(cumulative_distances_mm) - 1):
+            first_cumulative_distance = cumulative_distances_mm[i]
+            fva = sorted_vertical_aligment_by_start_cumulative_distance_mm[first_cumulative_distance]
+            second_cumulative_distance = cumulative_distances_mm[i + 1]
+            sva = sorted_vertical_aligment_by_start_cumulative_distance_mm[second_cumulative_distance]
+            if np.abs(sva.start_cumulative_distance - fva.computed_cumulative_distance_end) > 0.001:
+                slope = (sva.elevation_start - fva.elevation_end) / (sva.start_cumulative_distance - fva.computed_cumulative_distance_end)
+                line_vertical_curve = LineVerticalCurve(self)
+                line_vertical_curve.start_cumulative_distance = fva.computed_cumulative_distance_end
+                line_vertical_curve.computed_cumulative_distance_end = sva.start_cumulative_distance
+                line_vertical_curve.elevation_start = fva.elevation_end
+                line_vertical_curve.elevation_end = sva.elevation_start
+                line_vertical_curve.slope = slope
+                line_vertical_curve.computed_parameters = True
+                start_cumulative_distance_mm = int(fva.computed_cumulative_distance_end * 1000.)
+                vertical_aligment_by_start_cumulative_distance_mm[start_cumulative_distance_mm] = line_vertical_curve
+        sorted_vertical_aligment_by_start_cumulative_distance_mm.update(vertical_aligment_by_start_cumulative_distance_mm)
+        self.vertical_aligment_by_start_cumulative_distance_mm \
+            = dict(sorted(sorted_vertical_aligment_by_start_cumulative_distance_mm.items()))
         last_cumulative_distance_mm = list(self.vertical_aligment_by_start_cumulative_distance_mm.keys())[-1]
         last_vertical_aligment = self.vertical_aligment_by_start_cumulative_distance_mm[last_cumulative_distance_mm]
         self.computed_cumulative_distance_end = last_vertical_aligment.computed_cumulative_distance_end
