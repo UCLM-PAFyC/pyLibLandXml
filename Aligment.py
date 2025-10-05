@@ -62,7 +62,17 @@ class Aligment:
             component_count = component_count + 1
             # if component_count == len(self.horizontal_aligment_by_cumulative_distance_mm):
             #     self.computed_cumulative_distance_end = aligment_component.computed_cumulative_distance_end
+        component_count = 0
         self.computed_parameters = True
+        for cross_section_cumulative_distance in self.cross_section_by_cumulative_distance_mm:
+            cross_section_component = self.cross_section_by_cumulative_distance_mm[cross_section_cumulative_distance]
+            str_error = cross_section_component.compute_parameters()
+            if str_error:
+                str_error = ('Computing paramerers for cross section component position: {}\nError:\n{}'
+                             .format(str(component_count + 1), str_error))
+                self.computed_parameters = False
+                return str_error
+            component_count = component_count + 1
         return str_error
 
     def compute_elevation_from_cumulative_distance(self,

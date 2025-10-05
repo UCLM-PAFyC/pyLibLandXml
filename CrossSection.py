@@ -23,6 +23,48 @@ class CrossSection:
         self.aligment = aligment
         self.start_cumulative_distance = None
         self.cross_section_surface = None
+        self.computed_parameters = False
+        self.point_axis = None # at level (rasante)
+        self.azimuth = None
+
+    def compute_parameters(self):
+        str_error = ''
+        if self.computed_parameters:
+            return str_error
+        if self.start_cumulative_distance is None:
+            str_error = ('CrossSection object is not initialized.')
+            return str_error
+        # point axis (at level, rasante)
+        str_error, point = self.aligment.compute_point_from_cumulative_distance(self.start_cumulative_distance)
+        if str_error:
+            str_error = ('Error computing CrossSection:\n{}'.format(str_error))
+            return str_error
+        self.point_axis = point
+        # azimuth
+        inc_distance = 0.01
+        inc_point = None
+        is_forward = True
+        if (self.start_cumulative_distance + inc_distance) < self.aligment.computed_cumulative_distance_end:
+            str_error, inc_point = self.aligment.compute_point_from_cumulative_distance(
+                self.start_cumulative_distance + inc_distance)
+        else:
+            str_error, inc_point = self.aligment.compute_point_from_cumulative_distance(
+                self.start_cumulative_distance - inc_distance)
+            is_forward = False
+        azimuth = np.arctan2(inc_point[0] - point[0], inc_point[1] - point[1])
+        if not is_forward:
+            azimuth = azimuth - np.pi
+        if azimuth < 0:
+            azimuth += 2 * math.pi
+        self.azimuth = azimuth
+        # cross_section_surface
+        if not self.cross_section_surface is None:
+            str_error = self.cross_section_surface.compute_parameters()
+            if str_error:
+                str_error = ('Error computing CrossSectionSurface:\n{}'.format(str_error))
+                return str_error
+        self.computed_parameters = True
+        return str_error
 
     def set_from_landxml_element(self,
                                  element):
