@@ -24,6 +24,18 @@ def main():
     if str_error:
         print(f"Error:\n\t{str_error}")
         return
+    grading_axis = False
+    cross_sections = True
+    ply_file_path = landXml.file_path
+    ply_file_path = ply_file_path.lower()
+    ply_file_path = ply_file_path.replace(".xml", ".ply")
+    ply_file_path = os.path.normpath(ply_file_path)
+    str_error = landXml.compute_triangulation(grading_axis,
+                                              cross_sections,
+                                              ply_file_path)
+    if str_error:
+        print(f"Error:\n\t{str_error}")
+        return
     # output_json_file_path = current_path + "/data/LAV_Tafalla_eje+rasante+subbalasto.json"
     # output_json_file_path = os.path.normpath(output_json_file_path)
     # str_error = landXml.write_to_json_file(output_json_file_path)

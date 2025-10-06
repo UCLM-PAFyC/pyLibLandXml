@@ -18,6 +18,7 @@ import defs_landxml as dlx
 from Aligment import Aligment
 from pyLibCRSs import CRSsDefines as defs_crs
 from pyLibCRSs.CRSsTools import CRSsTools
+from pyLibTriangle.TriangleTools import TriangleTools
 
 class LandXml:
     def __init__(self):
@@ -86,6 +87,108 @@ class LandXml:
         wkt_linestring += ")"
         wkt_profile_linestring += ")"
         return str_error, wkt_linestring, wkt_profile_linestring
+
+    def compute_triangulation(self,
+                              grading_axis,
+                              cross_sections,
+                              ply_file_path = None):
+        str_error = ''
+        if not self.computed_parameters:
+            str_error = ('LandXml object is not initialized.')
+            return str_error
+        if grading_axis:
+            str_error = ('Option use grading axis for triangulation of LandXml is not implemented yet.')
+            return str_error
+        points_left = []
+        points_center = []
+        points_right = []
+        points_cross_sections = []
+        for aligment_cumulative_distance_mm in self.alignment_by_cumulative_distance_mm:
+            aligment = self.alignment_by_cumulative_distance_mm[aligment_cumulative_distance_mm]
+            for cross_section_by_cumulative_distance_mm in aligment.cross_section_by_cumulative_distance_mm:
+                cross_section = aligment.cross_section_by_cumulative_distance_mm[cross_section_by_cumulative_distance_mm]
+                if cross_section.cross_section_surface is None:
+                    continue
+                cross_section_surface = cross_section.cross_section_surface
+                points_left.append(cross_section_surface.point_left)
+                points_right.append(cross_section_surface.point_right)
+                points_center.append(cross_section_surface.point_center)
+                points_cross_section = []
+                for cumulative_distance_mm in cross_section_surface.points_by_distance_to_center_mm:
+                    point_cross_section = cross_section_surface.points_by_distance_to_center_mm[cumulative_distance_mm]
+                    points_cross_section.append(point_cross_section)
+                points_cross_sections.append(points_cross_section)
+        points = []
+        segments = []
+        minimum_fc = 100000000.
+        minimum_sc = 100000000.
+        points_left_wkt = 'LINESTRING('
+        for i in range(len(points_left)):
+            if i > 0:
+                segment = [len(points) - 1, len(points)]
+                segments.append(segment)
+                points_left_wkt += ','
+            points.append(points_left[i])
+            if points[len(points) - 1][0] < minimum_fc:
+                minimum_fc = points[len(points) - 1][0]
+            if points[len(points) - 1][1] < minimum_sc:
+                minimum_sc = points[len(points) - 1][1]
+            points_left_wkt += ('{:4f} {:4f}'.format(points_left[i][0], points_left[i][1]))
+        points_left_wkt += ')'
+        points_right_wkt = 'LINESTRING('
+        for i in range(len(points_right)):
+            if i > 0:
+                segment = [len(points) - 1, len(points)]
+                segments.append(segment)
+                points_right_wkt += ','
+            points.append(points_right[i])
+            if points[len(points) - 1][0] < minimum_fc:
+                minimum_fc = points[len(points) - 1][0]
+            if points[len(points) - 1][1] < minimum_sc:
+                minimum_sc = points[len(points) - 1][1]
+            points_right_wkt += ('{:4f} {:4f}'.format(points_right[i][0], points_right[i][1]))
+        points_right_wkt += ')'
+        points_center_wkt = 'LINESTRING('
+        for i in range(len(points_center)):
+            if i > 0:
+                segment = [len(points) - 1, len(points)]
+                segments.append(segment)
+                points_center_wkt += ','
+            points.append(points_center[i])
+            if points[len(points) - 1][0] < minimum_fc:
+                minimum_fc = points[len(points) - 1][0]
+            if points[len(points) - 1][1] < minimum_sc:
+                minimum_sc = points[len(points) - 1][1]
+            points_center_wkt += ('{:4f} {:4f}'.format(points_center[i][0], points_center[i][1]))
+        points_center_wkt += ')'
+        for j in range(len(points_cross_sections)):
+            cross_section = points_cross_sections[j]
+            for i in range(len(cross_section)):
+                if i > 0:
+                    segment = [len(points) - 1, len(points)]
+                    segments.append(segment)
+                points.append(cross_section[i])
+                if points[len(points) - 1][0] < minimum_fc:
+                    minimum_fc = points[len(points) - 1][0]
+                if points[len(points) - 1][1] < minimum_sc:
+                    minimum_sc = points[len(points) - 1][1]
+        points_np = np.zeros((len(points), 2), dtype=np.float32)
+        for i in range(len(points)):
+            points_np[i, 0] = points[i][0] - minimum_fc
+            points_np[i, 1] = points[i][1] - minimum_sc
+        segments_np = np.array(segments, dtype=np.uint32)
+        # segments_np = np.zeros((len(segments), 2), dtype=np.int32)
+        # for i in range(len(segments)):
+        #     segments_np[i, 0] = segments[i,0]
+        #     segments_np[i, 1] = segments[i,1]
+        # yo = 1
+        str_error, triangles = TriangleTools.triangulate(points_np, segments_np)
+        if str_error:
+            return str_error
+        str_error, ply_content = TriangleTools.export_to_ply_content(points, triangles, ply_file_path)
+        if str_error:
+            return str_error
+        return str_error
 
     def set_axis_points(self,
                         points_distance):
@@ -260,6 +363,7 @@ class LandXml:
             if cont_aligment == len(self.alignment_by_cumulative_distance_mm):
                 self.computed_cumulative_distance_end = aligment.computed_cumulative_distance_end
         self.computed_parameters = True
+        self.file_path = file_path
         return str_error
 
     def write_to_json_file(self,
