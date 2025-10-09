@@ -34,6 +34,10 @@ class LandXml:
         self.start_cumulative_distance = None
         self.computed_cumulative_distance_end = None
         self.computed_parameters = False
+        self.triangulation_points = None
+        self.triangulation_triangles = None
+        self.triangulation_ply_content = None
+
 
     def clear(self):
         self.file_path = None
@@ -93,6 +97,9 @@ class LandXml:
                               cross_sections,
                               ply_file_path = None):
         str_error = ''
+        self.triangulation_points = None
+        self.triangulation_triangles = None
+        self.triangulation_ply_content = None
         if not self.computed_parameters:
             str_error = ('LandXml object is not initialized.')
             return str_error
@@ -186,6 +193,9 @@ class LandXml:
         if str_error:
             return str_error
         str_error, ply_content = TriangleTools.export_to_ply_content(points, triangles, ply_file_path)
+        self.triangulation_points = points
+        self.triangulation_triangles = triangles
+        self.triangulation_ply_content = ply_content
         if str_error:
             return str_error
         return str_error
