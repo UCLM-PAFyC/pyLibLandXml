@@ -189,7 +189,7 @@ class LandXml:
         #     segments_np[i, 0] = segments[i,0]
         #     segments_np[i, 1] = segments[i,1]
         # yo = 1
-        str_error, triangles = TriangleTools.triangulate(points_np, segments_np)
+        str_error, triangles = TriangleTools.create_triangulation(points_np, segments_np)
         if str_error:
             return str_error
         str_error, ply_content = TriangleTools.export_to_ply_content(points, triangles, ply_file_path)
