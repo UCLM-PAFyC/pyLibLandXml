@@ -193,11 +193,11 @@ class LandXml:
         if str_error:
             return str_error
         str_error, ply_content = TriangleTools.export_to_ply_content(points, triangles, ply_file_path)
+        if str_error:
+            return str_error
         self.triangulation_points = points
         self.triangulation_triangles = triangles
         self.triangulation_ply_content = ply_content
-        if str_error:
-            return str_error
         return str_error
 
     def set_axis_points(self,
