@@ -16,7 +16,7 @@ import re
 import math
 import time
 
-current_path = os.path.dirname(__file__)
+current_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(current_path, '../../..'))
 
 # lib_path = 'E:/dev/python/lib'
