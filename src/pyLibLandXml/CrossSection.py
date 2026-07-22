@@ -4,8 +4,8 @@
 import math
 import numpy as np
 
-import defs_landxml as dlx
-from CrossSectionSurface import CrossSectionSurface
+from . import defs_landxml as dlx
+from . import CrossSectionSurface
 
 # http://www.landxml.org/schema/landxml-1.2/documentation/LandXML-1.2Doc_CrossSectSurf.html#Link07F1F4F0
 class CrossSection:

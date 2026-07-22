@@ -4,7 +4,7 @@
 import os, sys
 import numpy as np
 
-import defs_landxml as dlx
+from . import defs_landxml as dlx
 
 # http://www.landxml.org/schema/landxml-1.2/documentation/LandXML-1.2Doc_CrossSectSurf.html#Link07F1F4F0
 class CrossSectionSurface:

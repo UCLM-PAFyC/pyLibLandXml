@@ -4,7 +4,7 @@ import argparse
 import sys
 import os
 
-from LandXml import LandXml
+from . import LandXml
 
 def process(input_file_path,
             points_distance_in_axis,

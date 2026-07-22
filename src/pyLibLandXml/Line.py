@@ -5,7 +5,7 @@ import os, sys
 import math
 import numpy as np
 
-import defs_landxml as dlx
+from . import defs_landxml as dlx
 
 # http://www.landxml.org/schema/landxml-1.2/documentation/LandXML-1.2Doc_Line.html
 class Line:

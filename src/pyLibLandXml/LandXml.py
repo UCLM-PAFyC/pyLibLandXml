@@ -6,8 +6,8 @@ import json
 import xmltodict
 import numpy as np
 
-import defs_landxml as dlx
-from Aligment import Aligment
+from . import defs_landxml as dlx
+from . import Aligment
 from pyLibCRSs.CRSsTools import CRSsTools
 from pyLibTriangle.TriangleTools import TriangleTools
 
