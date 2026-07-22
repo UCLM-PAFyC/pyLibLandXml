@@ -1,19 +1,9 @@
 # authors:
 # David Hernandez Lopez, david.hernandez@uclm.es
 
-import os, sys
 import math
-import pathlib
-import datetime
-import json
-import xmltodict
 import numpy as np
 
-current_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(current_path, '..'))
-sys.path.append(os.path.join(current_path))
-
-# from . import defs_landxml as dlx
 import defs_landxml as dlx
 from CrossSectionSurface import CrossSectionSurface
 

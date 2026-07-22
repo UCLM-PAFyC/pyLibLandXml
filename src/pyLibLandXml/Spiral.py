@@ -1,21 +1,10 @@
 # authors:
 # David Hernandez Lopez, david.hernandez@uclm.es
 
-import os, sys
-import math
-import pathlib
-import datetime
-import json
-import xmltodict
 import numpy as np
 from pyclothoids import Clothoid
 
-current_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(current_path, '..'))
-sys.path.append(os.path.join(current_path))
-
-# from . import defs_landxml as dlx
-import defs_landxml as dlx
+from src.pyLibLandXml import defs_landxml as dlx
 
 # http://www.landxml.org/schema/landxml-1.2/documentation/LandXML-1.2Doc_Spiral.html
 class Spiral:

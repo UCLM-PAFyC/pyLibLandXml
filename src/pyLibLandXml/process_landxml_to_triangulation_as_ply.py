@@ -1,28 +1,9 @@
 # authors:
 # David Hernandez Lopez, david.hernandez@uclm.es
-import os, sys
 import argparse
-import numpy
 import sys
 import os
-import json
-from urllib.parse import unquote
-import shutil
-from os.path import exists
-import datetime
-from math import floor, ceil, sqrt, isnan, modf, trunc
-import csv
-import re
-import math
-import time
 
-current_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(current_path, '../../..'))
-
-# lib_path = 'E:/dev/python/lib'
-# sys.path.append('E:/dev/python/lib')
-
-# from pyLibLandXml.LandXml import LandXml
 from LandXml import LandXml
 
 def process(input_file_path,
