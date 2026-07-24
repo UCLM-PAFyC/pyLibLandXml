@@ -4,8 +4,8 @@
 import numpy as np
 
 from . import defs_landxml as dlx
-from . import ParabolicVerticalCurve
-from . import LineVerticalCurve
+from .ParabolicVerticalCurve import ParabolicVerticalCurve
+from .LineVerticalCurve import LineVerticalCurve
 
 # http://www.landxml.org/schema/landxml-1.2/documentation/LandXML-1.2Doc_ProfAlign.html
 class ProfileVerticalAligment:

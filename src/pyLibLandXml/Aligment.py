@@ -2,11 +2,11 @@
 # David Hernandez Lopez, david.hernandez@uclm.es
 
 from . import defs_landxml as dlx
-from . import Curve
-from . import Line
-from . import Spiral
-from . import ProfileVerticalAligment
-from . import CrossSection
+from .Curve import Curve
+from .Line import Line
+from .Spiral import Spiral
+from .ProfileVerticalAligment import ProfileVerticalAligment
+from .CrossSection import CrossSection
 
 # http://www.landxml.org/schema/landxml-1.2/documentation/landxml-1.2doc_alignment.html
 class Aligment:

@@ -7,7 +7,7 @@ import xmltodict
 import numpy as np
 
 from . import defs_landxml as dlx
-from . import Aligment
+from .Aligment import Aligment
 from pyLibCRSs.CRSsTools import CRSsTools
 from pyLibTriangle.TriangleTools import TriangleTools
 
