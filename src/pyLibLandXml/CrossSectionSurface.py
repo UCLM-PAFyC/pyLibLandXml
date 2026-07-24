@@ -1,7 +1,6 @@
 # authors:
 # David Hernandez Lopez, david.hernandez@uclm.es
 
-import os, sys
 import numpy as np
 
 from . import defs_landxml as dlx

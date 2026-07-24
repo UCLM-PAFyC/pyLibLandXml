@@ -1,7 +1,6 @@
 # authors:
 # David Hernandez Lopez, david.hernandez@uclm.es
 
-import os, sys
 import math
 import numpy as np
 

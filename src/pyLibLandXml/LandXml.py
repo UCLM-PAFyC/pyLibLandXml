@@ -8,8 +8,8 @@ import numpy as np
 
 from . import defs_landxml as dlx
 from .Aligment import Aligment
-from pyLibCRSs.CRSsTools import CRSsTools
-from pyLibTriangle.TriangleTools import TriangleTools
+from pyLibCRSs import CRSsTools
+from pyLibTriangle import TriangleTools
 
 class LandXml:
     def __init__(self):
